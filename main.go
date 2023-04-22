@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -13,8 +14,22 @@ func main() {
 	for i := 0; ; i++ {
 		fmt.Print(i, " ")
 		callApi()
-		time.Sleep(1 * time.Second)
+		time.Sleep(800 * time.Millisecond)
 	}
+}
+
+type Data struct {
+	User struct {
+		ID             string `json:"_id"`
+		WalletID       string `json:"wallet_id"`
+		R              string `json:"r"`
+		S              string `json:"s"`
+		V              string `json:"v"`
+		Score          int    `json:"score"`
+		LastTimeUpdate int64  `json:"lastTimeUpdate"`
+	} `json:"user"`
+	Totalpoint int `json:"totalpoint"`
+	PointHonk  int `json:"point_honk"`
 }
 
 func callApi() {
@@ -39,9 +54,11 @@ func callApi() {
 		log.Fatal(err)
 	}
 
-	var res map[string]interface{}
+	body, err := io.ReadAll(resp.Body) // response body is []byte
+	var data Data
+	if err := json.Unmarshal(body, &data); err != nil { // Parse []byte to go struct pointer
+		fmt.Println("Can not unmarshal JSON")
+	}
 
-	json.NewDecoder(resp.Body).Decode(&res)
-
-	fmt.Println(res["json"])
+	fmt.Println(data.User.Score)
 }
