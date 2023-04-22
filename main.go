@@ -5,16 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"time"
 )
 
 func main() {
 	for i := 0; ; i++ {
-		fmt.Print(i, " ")
 		callApi()
-		time.Sleep(800 * time.Millisecond)
+		callApi2()
 	}
 }
 
@@ -44,20 +41,63 @@ func callApi() {
 	json_data, err := json.Marshal(values)
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return
 	}
 
 	resp, err := http.Post("https://api.arbmario.io/hit", "application/json",
 		bytes.NewBuffer(json_data))
-
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("err", err)
+		return
 	}
 
+	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body) // response body is []byte
+	if err != nil {
+		fmt.Println("err", err)
+		return
+	}
+
 	var data Data
 	if err := json.Unmarshal(body, &data); err != nil { // Parse []byte to go struct pointer
 		fmt.Println("Can not unmarshal JSON")
+		return
+	}
+
+	fmt.Println(data.User.Score)
+}
+
+func callApi2() {
+	values := map[string]string{"wallet_id": "0x4bff03efff59e0782517d9fc3e3af196254f1dff", "r": "0x3ca1ab5241b8686ed64cd9871f6c36c42c470163acd4042a74b504eef06268b5", "s": "0x285cd859d5824c93d19280feacd850938b1d0954769545b9e2f36ea3e96b8e2e", "v": "0x1b", "numberbonk": "18"}
+
+	json_data, err := json.Marshal(values)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	resp, err := http.Post("https://api.arbmario.io/hit", "application/json",
+		bytes.NewBuffer(json_data))
+	if err != nil {
+		fmt.Println("err", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body) // response body is []byte
+	if err != nil {
+		fmt.Println("err", err)
+		return
+	}
+
+	var data Data
+	if err := json.Unmarshal(body, &data); err != nil { // Parse []byte to go struct pointer
+		fmt.Println("Can not unmarshal JSON")
+		return
 	}
 
 	fmt.Println(data.User.Score)
